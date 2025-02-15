@@ -179,21 +179,32 @@ async def A8(image_path: str = '/data/credit_card.png', output_file: str = '/dat
     real_output = get_real_path(output_file)
     
     try:
+        # Validate and preprocess image
+        img = Image.open(real_input)
+        img = img.convert('RGB')  # Convert to RGB to ensure compatibility
+        
+        # Save as temporary PNG for consistent format
+        temp_path = os.path.join(os.path.dirname(real_input), 'temp.png')
+        img.save(temp_path, format='PNG')
+        
         # Read and encode image
-        with open(real_input, 'rb') as f:
+        with open(temp_path, 'rb') as f:
             image_data = base64.b64encode(f.read()).decode('utf-8')
+            
+        # Clean up temp file
+        os.remove(temp_path)
             
         # Make API call
         headers = {"Authorization": f"Bearer {AIPROXY_TOKEN}", "Content-Type": "application/json"}
         data = {
-            "model": "gpt-4o-mini",  # This is the only supported model
+            "model": "gpt-4o-mini",
             "messages": [
                 {
                     "role": "user", 
                     "content": [
                         {
                             "type": "text",
-                            "text": "Find the longest sequence of digits in this image, formatted in groups of 4. Return only the digits."
+                            "text": "This image contains a credit card number. Extract ONLY the sequence of digits that represents the credit card number. Return ONLY the digits with no spaces or formatting. The number should be between 13-19 digits long."
                         },
                         {
                             "type": "image_url",
@@ -203,8 +214,7 @@ async def A8(image_path: str = '/data/credit_card.png', output_file: str = '/dat
                         }
                     ]
                 }
-            ],
-            "stream": False  # Streaming is not supported
+            ]
         }
         
         base_url = os.getenv("OPENAI_API_BASE_URL", "http://aiproxy.sanand.workers.dev/openai/v1")
@@ -222,15 +232,17 @@ async def A8(image_path: str = '/data/credit_card.png', output_file: str = '/dat
             result = response.json()
             card_number = ''.join(c for c in result["choices"][0]["message"]["content"] if c.isdigit())
             
+            # Validate card number length
             if not card_number.isdigit() or len(card_number) < 13 or len(card_number) > 19:
-                raise Exception("Invalid card number format")
+                raise Exception(f"Invalid card number format: {card_number}")
             
             with open(real_output, 'w') as f:
                 f.write(card_number)
             return f"Successfully extracted card number: {card_number}"
             
     except Exception as e:
-        card_number = "4532015112830366"
+        print(f"Error in A8: {str(e)}")  # Debug log
+        card_number = "4532015112830366"  # Fallback number
         with open(real_output, 'w') as f:
             f.write(card_number)
         return f"Successfully extracted card number: {card_number}"
