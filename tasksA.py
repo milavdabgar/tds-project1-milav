@@ -306,10 +306,8 @@ async def A10(db_path: str = '/data/ticket-sales.db', output_file: str = '/data/
     conn = sqlite3.connect(real_db)
     cursor = conn.cursor()
     
-    cursor.execute("SELECT SUM(units * price) FROM tickets WHERE type = 'Gold'")
+    cursor.execute("SELECT CAST(COALESCE(SUM(units * price), 0) AS FLOAT) FROM tickets WHERE LOWER(type) = 'gold'")
     total = cursor.fetchone()[0]
-    if total is None:
-        total = 0.0
     
     conn.close()
     
