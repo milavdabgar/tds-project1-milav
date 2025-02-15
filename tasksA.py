@@ -311,8 +311,10 @@ async def A10(db_path: str = '/data/ticket-sales.db', output_file: str = '/data/
     
     cursor.execute("SELECT SUM(units * price) FROM tickets WHERE type = 'Gold'")
     total = cursor.fetchone()[0]
+    if total is None:
+        total = 0
     
     conn.close()
     
     with open(real_output, 'w') as f:
-        f.write(str(total))
+        f.write(f"{float(total):.2f}")
