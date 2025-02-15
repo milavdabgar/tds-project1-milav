@@ -75,7 +75,7 @@ async def B6(url: str, output_path: str):
         with open(real_output, 'w', encoding='utf-8') as f:
             f.write(text)
 
-async def B7(image_path: str, output_path: str, width: int = None, height: int = None):
+async def B7(image_path: str, output_path: str, width: str = None, height: str = None):
     """Process image (compress/resize)."""
     ensure_data_path(image_path)
     ensure_data_path(output_path)
@@ -87,7 +87,7 @@ async def B7(image_path: str, output_path: str, width: int = None, height: int =
     
     # Resize if dimensions provided
     if width and height:
-        img = img.resize((width, height), Image.LANCZOS)
+        img = img.resize((int(width), int(height)), Image.Resampling.LANCZOS)
     
     # Save with compression
     os.makedirs(os.path.dirname(real_output), exist_ok=True)

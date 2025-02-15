@@ -72,6 +72,12 @@ async def get_task_info(task_description: str):
     For Task A8: Return {"task_type": "A8", "parameters": {"image_path": "/data/credit-card.png", "output_file": "/data/credit-card.txt"}}
     For Task A9: Return {"task_type": "A9", "parameters": {"filename": "/data/comments.txt", "output_file": "/data/comments-similar.txt"}}
     For Task A10: Return {"task_type": "A10", "parameters": {"db_path": "/data/ticket-sales.db", "output_file": "/data/ticket-sales-gold.txt"}}
+    For Task B3: Return {"task_type": "B3", "parameters": {"url": "<api_url>", "save_path": "/data/<output_file>"}}
+    For Task B5: Return {"task_type": "B5", "parameters": {"db_path": "<db_path>", "query": "<sql_query>", "output_path": "/data/<output_file>"}}
+    For Task B6: Return {"task_type": "B6", "parameters": {"url": "<website_url>", "output_path": "/data/<output_file>"}}
+    For Task B7: Return {"task_type": "B7", "parameters": {"image_path": "<input_image>", "output_path": "/data/<output_file>", "width": "<width>", "height": "<height>"}}
+    For Task B9: Return {"task_type": "B9", "parameters": {"md_path": "<markdown_file>", "output_path": "/data/<output_file>"}}
+    For Task B10: Return {"task_type": "B10", "parameters": {"csv_path": "<csv_file>", "filter_column": "<column>", "filter_value": "<value>", "output_path": "/data/<output_file>"}}
     Return ONLY the JSON object, nothing else."""
     
     async with httpx.AsyncClient() as client:
@@ -91,17 +97,8 @@ async def get_task_info(task_description: str):
             raise HTTPException(status_code=500, detail="Failed to parse task using LLM")
             
         result = response.json()
-        parsed_response = result["choices"][0]["message"]["content"].strip()
-        
-        try:
-            task_info = json.loads(parsed_response)
-            if not isinstance(task_info, dict) or "task_type" not in task_info or "parameters" not in task_info:
-                raise ValueError("Invalid task info format")
-            return task_info
-        except json.JSONDecodeError as e:
-            raise HTTPException(status_code=400, detail=f"Failed to parse LLM response: {str(e)}")
-        except ValueError as e:
-            raise HTTPException(status_code=400, detail=str(e))
+        task_info = json.loads(result["choices"][0]["message"]["content"])
+        return task_info
 
 async def execute_task_a(task_info):
     """Execute Phase A tasks."""
@@ -136,26 +133,28 @@ async def execute_task_b(task_info):
     task_type = task_info["task_type"]
     params = task_info["parameters"]
     
-    if task_type == "B1":
-        return await B1(params.get("filename", "/data/format.md"))
-    elif task_type == "B2":
-        return await B2(params.get("filename", "/data/dates.txt"))
-    elif task_type == "B3":
-        return await B3(params.get("filename", "/data/contacts.json"))
-    elif task_type == "B4":
-        return await B4(params.get("log_dir", "/data/logs"))
+    if task_type == "B3":
+        return await B3(params.get("url"), params.get("save_path", "/data/api_response.json"))
     elif task_type == "B5":
-        return await B5(params.get("doc_dir", "/data/docs"))
+        return await B5(params.get("db_path"), params.get("query"), params.get("output_path", "/data/query_results.json"))
     elif task_type == "B6":
-        return await B6(params.get("filename", "/data/email.txt"))
+        return await B6(params.get("url"), params.get("output_path", "/data/scraped_content.txt"))
     elif task_type == "B7":
-        return await B7(params.get("image_path", "/data/credit-card.png"))
-    elif task_type == "B8":
-        return await B8(params.get("filename", "/data/comments.txt"))
+        return await B7(
+            params.get("image_path"), 
+            params.get("output_path", "/data/processed_image.jpg"),
+            params.get("width"),
+            params.get("height")
+        )
     elif task_type == "B9":
-        return await B9(params.get("db_path", "/data/ticket-sales.db"))
+        return await B9(params.get("md_path"), params.get("output_path", "/data/converted.html"))
     elif task_type == "B10":
-        return await B10(params.get("filename", "/data/format.md"))
+        return await B10(
+            params.get("csv_path"),
+            params.get("filter_column"),
+            params.get("filter_value"),
+            params.get("output_path", "/data/filtered.json")
+        )
     else:
         raise ValueError(f"Unknown task type: {task_type}")
 
