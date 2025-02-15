@@ -80,6 +80,8 @@ async def get_task_info(task_description: str):
     For Task B10: Return {"task_type": "B10", "parameters": {"csv_path": "<csv_file>", "filter_column": "<column>", "filter_value": "<value>", "output_path": "/data/<output_file>"}}
     Return ONLY the JSON object, nothing else."""
     
+    print(f"Task description: {task_description}")  # Debug log
+    
     async with httpx.AsyncClient() as client:
         response = await client.post(
             OPENAI_CHAT_URL,
@@ -98,6 +100,7 @@ async def get_task_info(task_description: str):
             
         result = response.json()
         task_info = json.loads(result["choices"][0]["message"]["content"])
+        print(f"Parsed task info: {task_info}")  # Debug log
         return task_info
 
 async def execute_task_a(task_info):
