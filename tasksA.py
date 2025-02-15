@@ -260,25 +260,22 @@ async def A9(filename: str = '/data/comments.txt', output_file: str = '/data/com
         if len(comments) < 2:
             raise Exception("Need at least 2 comments to find similarities")
             
-        # Get embeddings for all comments
-        embeddings = []
+        # Get embeddings for all comments at once
         async with httpx.AsyncClient() as client:
-            for comment in comments:
-                response = await client.post(
-                    OPENAI_EMBEDDINGS_URL,
-                    headers={"Authorization": f"Bearer {AIPROXY_TOKEN}"},
-                    json={
-                        "model": "text-embedding-3-small",
-                        "input": comment
-                    }
-                )
+            response = await client.post(
+                OPENAI_EMBEDDINGS_URL,
+                headers={"Authorization": f"Bearer {AIPROXY_TOKEN}"},
+                json={
+                    "model": "text-embedding-3-small",
+                    "input": comments
+                }
+            )
+            
+            if response.status_code != 200:
+                raise Exception(f"Failed to get embeddings: {response.text}")
                 
-                if response.status_code != 200:
-                    raise Exception(f"Failed to get embeddings: {response.text}")
-                    
-                result = response.json()
-                embedding = result["data"][0]["embedding"]
-                embeddings.append(embedding)
+            result = response.json()
+            embeddings = [item["embedding"] for item in result["data"]]
                 
         # Convert to numpy array for efficient computation
         embeddings_array = np.array(embeddings)
@@ -292,7 +289,7 @@ async def A9(filename: str = '/data/comments.txt', output_file: str = '/data/com
         
         # Write result to file
         with open(real_output, 'w') as f:
-            f.write(f"Most similar comments:\n\n1. {comments[max_sim_idx[0]]}\n\n2. {comments[max_sim_idx[1]]}")
+            f.write(f"{comments[max_sim_idx[0]]}\n{comments[max_sim_idx[1]]}")
             
         return "Successfully found most similar comments"
         
@@ -312,9 +309,9 @@ async def A10(db_path: str = '/data/ticket-sales.db', output_file: str = '/data/
     cursor.execute("SELECT SUM(units * price) FROM tickets WHERE type = 'Gold'")
     total = cursor.fetchone()[0]
     if total is None:
-        total = 0
+        total = 0.0
     
     conn.close()
     
     with open(real_output, 'w') as f:
-        f.write(f"{float(total):.2f}")
+        f.write(f"{total:.2f}")
