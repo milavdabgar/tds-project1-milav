@@ -78,30 +78,34 @@ async def get_task_info(task_description: str):
     For Task B7: Return {"task_type": "B7", "parameters": {"image_path": "<input_image>", "output_path": "/data/<output_file>", "width": "<width>", "height": "<height>"}}
     For Task B9: Return {"task_type": "B9", "parameters": {"md_path": "<markdown_file>", "output_path": "/data/<output_file>"}}
     For Task B10: Return {"task_type": "B10", "parameters": {"csv_path": "<csv_file>", "filter_column": "<column>", "filter_value": "<value>", "output_path": "/data/<output_file>"}}
-    Return ONLY the JSON object, nothing else."""
+    Return ONLY the JSON object."""
     
     print(f"Task description: {task_description}")  # Debug log
     
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-            OPENAI_CHAT_URL,
-            headers={"Authorization": f"Bearer {AIPROXY_TOKEN}"},
-            json={
-                "model": "gpt-4o-mini",
-                "messages": [
-                    {"role": "system", "content": system_prompt},
-                    {"role": "user", "content": task_description}
-                ]
-            }
-        )
-        
-        if response.status_code != 200:
-            raise HTTPException(status_code=500, detail="Failed to parse task using LLM")
+    try:
+        async with httpx.AsyncClient() as client:
+            headers = {"Authorization": f"Bearer {AIPROXY_TOKEN}"}
+            response = await client.post(
+                OPENAI_CHAT_URL,
+                headers=headers,
+                json={
+                    "model": "gpt-4o-mini",
+                    "messages": [
+                        {"role": "system", "content": system_prompt},
+                        {"role": "user", "content": task_description}
+                    ]
+                }
+            )
             
-        result = response.json()
-        task_info = json.loads(result["choices"][0]["message"]["content"])
-        print(f"Parsed task info: {task_info}")  # Debug log
-        return task_info
+            if response.status_code != 200:
+                raise HTTPException(status_code=500, detail=f"Failed to parse task using LLM: {response.text}")
+                
+            result = response.json()
+            task_info = json.loads(result["choices"][0]["message"]["content"])
+            print(f"Parsed task info: {task_info}")  # Debug log
+            return task_info
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to parse task using LLM: {str(e)}")
 
 async def execute_task_a(task_info):
     """Execute Phase A tasks."""

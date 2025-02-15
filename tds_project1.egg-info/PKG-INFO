@@ -1,0 +1,7 @@
+Metadata-Version: 2.2
+Name: tds-project1
+Version: 0.1
+License-File: LICENSE
+Requires-Dist: faker
+Requires-Dist: pillow
+Dynamic: requires-dist

@@ -16,10 +16,10 @@ PORT = int(os.getenv("PORT", "8000"))
 
 # Data Directory Configuration
 DATA_DIR = os.getenv("DATA_DIR", "/data")
-REAL_DATA_DIR = os.path.join(os.getcwd(), "data")
+REAL_DATA_DIR = os.getenv("REAL_DATA_DIR", "/data")
 
 # API Endpoints
-OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "http://aiproxy.sanand.workers.dev/openai/v1")
+OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "http://103.158.41.79/openai/v1")
 OPENAI_CHAT_URL = f"{OPENAI_API_BASE_URL}/chat/completions"
 OPENAI_EMBEDDINGS_URL = f"{OPENAI_API_BASE_URL}/embeddings"
 
