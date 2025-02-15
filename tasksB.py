@@ -1,13 +1,10 @@
 import os
 import httpx
-import subprocess
 import sqlite3
 from PIL import Image
-import duckdb
 import markdown
 from bs4 import BeautifulSoup
 import json
-from pathlib import Path
 from config import *
 
 async def B3(url: str, save_path: str):

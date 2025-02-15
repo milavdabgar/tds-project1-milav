@@ -3,14 +3,12 @@ import json
 import httpx
 import base64
 from datetime import datetime
-from pathlib import Path
 import sqlite3
 import subprocess
 from dateutil import parser
 import numpy as np
 from scipy.spatial.distance import cdist
 from config import *
-import pytesseract
 from PIL import Image
 
 async def A1(email: str):
