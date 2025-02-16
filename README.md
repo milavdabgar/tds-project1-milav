@@ -4,13 +4,18 @@ This project implements various data science tasks using Python. It provides a F
 
 ## Running with Docker
 
-The easiest way to run this project is using Docker:
+The project is available as a Docker image on Docker Hub:
+[milavdabgar/tds-project1](https://hub.docker.com/r/milavdabgar/tds-project1)
+
+To run the project:
 
 ```bash
-docker run -p 8000:8000 -v $(pwd)/data:/data -e EMAIL=your@email.com milavdabgar/tds-project1:latest
+docker run -p 8000:8000 -e AIPROXY_TOKEN=$AIPROXY_TOKEN milavdabgar/tds-project1:latest
 ```
 
 The service will be available at http://localhost:8000
+
+Note: The AIPROXY_TOKEN environment variable must be set to a valid token for AI operations to work.
 
 ## Environment Variables
 
@@ -27,9 +32,29 @@ The service will be available at http://localhost:8000
 
 ## Current Status
 
-Successfully implemented tasks:
-- A1, A3, A4, A5
-- B5, B6, B7, B9, B10
+Current Test Status (13/18):
+
+Phase A (7/10):
+- ✅ A1: Run datagen.py script
+- ❌ A2: Format markdown with prettier
+- ✅ A3: Count Wednesdays in dates
+- ✅ A4: Sort contacts by name
+- ✅ A5: Extract recent log lines
+- ✅ A6: Create markdown index
+- ✅ A7: Extract email sender
+- ❌ A8: Extract credit card number
+- ❌ A9: Find similar comments
+- ✅ A10: Calculate ticket sales
+
+Phase B (6/8):
+- ✅ B3: Fetch API data
+- ❌ B4: Git repository operations
+- ✅ B5: Run SQL query
+- ✅ B6: Extract webpage heading
+- ✅ B7: Resize image
+- ❌ B8: Audio transcription
+- ✅ B9: Convert markdown to HTML
+- ✅ B10: Filter CSV data
 
 ## Dependencies
 

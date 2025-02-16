@@ -31,14 +31,34 @@ async def A2(prettier_version: str = "prettier@3.4.2", filename: str = "/data/fo
         # Format the file in place
         with open(real_path, 'r') as f:
             content = f.read()
-        result = subprocess.run(["npx", prettier_version, "--stdin-filepath", real_path], input=content, shell=False, capture_output=True, text=True)
+            
+        # Create a temporary directory for node_modules
+        temp_dir = "/tmp/prettier_temp"
+        os.makedirs(temp_dir, exist_ok=True)
+        os.chdir(temp_dir)
+        
+        # Install prettier locally
+        install_result = subprocess.run(["npm", "install", prettier_version], capture_output=True, text=True)
+        if install_result.returncode != 0:
+            raise Exception(f"Error installing prettier: {install_result.stderr}")
+            
+        # Run prettier using node directly
+        prettier_path = os.path.join(temp_dir, "node_modules", ".bin", "prettier")
+        result = subprocess.run([prettier_path, "--stdin-filepath", real_path], 
+                               input=content, capture_output=True, text=True)
         if result.returncode != 0:
             raise Exception(f"Error formatting file: {result.stderr}")
+            
         # Write the formatted content back to the file
         with open(real_path, 'w') as f:
             f.write(result.stdout)
+            
+        # Clean up
+        subprocess.run(["rm", "-rf", temp_dir])
         return "File formatted successfully"
     except Exception as e:
+        # Clean up in case of error
+        subprocess.run(["rm", "-rf", temp_dir])
         raise Exception(f"Failed to format file: {str(e)}")
 
 async def A3(filename: str = '/data/dates.txt', targetfile: str = '/data/dates-wednesdays.txt'):

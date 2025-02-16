@@ -12,8 +12,10 @@ RUN apt-get update && apt-get install -y \
     libavcodec-extra \
     && rm -rf /var/lib/apt/lists/*
 
-# Install prettier globally
-RUN npm install -g prettier@3.4.2
+# Install prettier and ensure npx is available
+RUN npm install -g prettier@3.4.2 && \
+    chmod +x $(which npx) && \
+    npm config set prefix /usr/local
 
 # Set working directory
 WORKDIR /app
