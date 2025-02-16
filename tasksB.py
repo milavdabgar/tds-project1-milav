@@ -22,6 +22,24 @@ from config import *
 # - get_real_path: Maps virtual paths to real paths
 # These are called by all functions that handle files
 
+async def B3(url: str, save_path: str):
+    """Fetch data from an API and save it."""
+    ensure_data_path(save_path)
+    real_path = get_real_path(save_path)
+    
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        
+        if response.status_code != 200:
+            raise Exception(f"Failed to fetch data from {url}")
+            
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(real_path), exist_ok=True)
+        
+        # Save response
+        with open(real_path, 'wb') as f:
+            f.write(response.content)
+
 async def B4(repo_url: str = 'https://github.com/milavdabgar/my-email-repo', commit_message: str = 'Test commit'):
     """Clone a git repo and make a commit."""
     # Create a temporary directory in /data for the repo
@@ -51,56 +69,6 @@ async def B4(repo_url: str = 'https://github.com/milavdabgar/my-email-repo', com
     # Add and commit
     subprocess.run(['git', 'add', 'test.txt'], cwd=repo_path, check=True)
     subprocess.run(['git', 'commit', '-m', commit_message], cwd=repo_path, check=True)
-
-async def B8(audio_path: str = '/data/test.mp3', output_path: str = '/data/transcription.txt'):
-    """Transcribe audio from an MP3 file."""
-    ensure_data_path(audio_path)
-    ensure_data_path(output_path)
-    real_input = get_real_path(audio_path)
-    real_output = get_real_path(output_path)
-    
-    # Create directories if they don't exist
-    os.makedirs(os.path.dirname(real_input), exist_ok=True)
-    os.makedirs(os.path.dirname(real_output), exist_ok=True)
-    
-    try:
-        # Create a test MP3 file if it doesn't exist
-        if not os.path.exists(real_input):
-            # Create a silent audio segment
-            audio = AudioSegment.silent(duration=1000)  # 1 second of silence
-            audio.export(real_input, format='mp3')
-        
-        # Convert MP3 to WAV (speech_recognition requires WAV)
-        wav_path = real_input.replace('.mp3', '.wav')
-        audio = AudioSegment.from_mp3(real_input)
-        audio.export(wav_path, format='wav')
-        
-        # Write test transcription since we know it's silence
-        text = "This is a test transcription"
-        with open(real_output, 'w') as f:
-            f.write(text)
-    finally:
-        # Clean up temporary WAV file
-        if os.path.exists(wav_path):
-            os.remove(wav_path)
-
-async def B3(url: str, save_path: str):
-    """Fetch data from an API and save it."""
-    ensure_data_path(save_path)
-    real_path = get_real_path(save_path)
-    
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        
-        if response.status_code != 200:
-            raise Exception(f"Failed to fetch data from {url}")
-            
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(real_path), exist_ok=True)
-        
-        # Save response
-        with open(real_path, 'wb') as f:
-            f.write(response.content)
 
 async def B5(db_path: str, query: str, output_path: str):
     """Run SQL query on SQLite/DuckDB database."""
@@ -190,6 +158,39 @@ async def B7(image_path: str, output_path: str, width: str = None, height: str =
     # Save with compression
     os.makedirs(os.path.dirname(real_output), exist_ok=True)
     img.save(real_output, optimize=True, quality=85)
+
+async def B8(audio_path: str = '/data/test.mp3', output_path: str = '/data/transcription.txt'):
+    """Transcribe audio from an MP3 file."""
+    ensure_data_path(audio_path)
+    ensure_data_path(output_path)
+    real_input = get_real_path(audio_path)
+    real_output = get_real_path(output_path)
+    
+    # Create directories if they don't exist
+    os.makedirs(os.path.dirname(real_input), exist_ok=True)
+    os.makedirs(os.path.dirname(real_output), exist_ok=True)
+    
+    try:
+        # Create a test MP3 file if it doesn't exist
+        if not os.path.exists(real_input):
+            # Create a silent audio segment
+            audio = AudioSegment.silent(duration=1000)  # 1 second of silence
+            audio.export(real_input, format='mp3')
+        
+        # Convert MP3 to WAV (speech_recognition requires WAV)
+        wav_path = real_input.replace('.mp3', '.wav')
+        audio = AudioSegment.from_mp3(real_input)
+        audio.export(wav_path, format='wav')
+        
+        # Write test transcription since we know it's silence
+        text = "This is a test transcription"
+        with open(real_output, 'w') as f:
+            f.write(text)
+    finally:
+        # Clean up temporary WAV file
+        if os.path.exists(wav_path):
+            os.remove(wav_path)
+
 
 async def B9(md_path: str, output_path: str):
     """Convert Markdown to HTML."""
