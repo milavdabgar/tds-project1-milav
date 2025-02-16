@@ -161,3 +161,22 @@ Here’s how we will score the results.
 - **Bonus: Code diversity**. You’re encouraged to copy code and learn from each other. We encourage diversity too. We will evaluate code similarity and give bonus marks for most unique responses. (That is, if your response is similar to a lot of others, you won’t get bonus marks.)
 
 Your score will be the sum of the marks above. No normalization, i.e. whether it’s 0/20 or 22/20, what you get is what you get.
+
+
+Project 1 Evaluation
+This folder has the evaluation script for the Project 1 - TDS 2025 Jan.
+
+Here's how we will evaluate your project:
+
+Download responses from the TDS Jan 2025 - Project 1 Submission Google Form as submissions.csv
+We will parse image names submitted as user-name/repo-name or https://hub.docker.com/r/user-name/repo-name.
+For each $IMAGE_NAME in submissions.csv, run podman run --rm -p 8000:8000 -e AIPROXY_TOKEN=$AIPROXY_TOKEN $IMAGE_NAME
+Ensure local dependencies (currently only npx) are on the PATH
+Set the environment variables OPENAI_API_KEY to the AI Proxy token
+Run evaluate.py to calculate the score.
+Here's how you can try it out. Run your Docker image exposing port 8000 and run this command (replacing $AIPROXY_TOKEN with your AI Proxy token):
+
+OPENAI_API_KEY=$AIPROXY_TOKEN uv run https://raw.githubusercontent.com/sanand0/tools-in-data-science-public/tds-2025-01/project-1/evaluate.py
+This evaluate.py script currently work-in-progress and will be updated based on teacher & student feedback.
+
+You're welcome to try it and share feedback on this Project 1 Discourse Thread.
