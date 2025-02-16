@@ -1,8 +1,0 @@
-LICENSE
-datagen.py
-setup.py
-tds_project1.egg-info/PKG-INFO
-tds_project1.egg-info/SOURCES.txt
-tds_project1.egg-info/dependency_links.txt
-tds_project1.egg-info/requires.txt
-tds_project1.egg-info/top_level.txt

@@ -69,7 +69,7 @@ async def read(path: str):
 async def a1(email: str, **kwargs):
     await run(
         f"""
-Install `uv` (if required) and run the script `https://raw.githubusercontent.com/sanand0/tools-in-data-science-public/tds-2025-01/datagen.py`
+Install `uv` (if required) and run the script `https://raw.githubusercontent.com/sanand0/tools-in-data-science-public/tds-2025-01/project-1/datagen.py`
 with `{email}` as the only argument
 """
     )
@@ -234,6 +234,7 @@ async def a10(email, **kwargs):
 
 async def main(email: str):
     score, total = 0, 0
+    logging.info("\n🔵 Phase A: Basic Tasks")
     for task in [a1, a2, a3, a4, a5, a6, a7, a8, a9, a10]:
         total += 1
         try:
@@ -246,8 +247,125 @@ async def main(email: str):
         else:
             logging.error(f"❌ {task.__name__.upper()} FAILED")
         score += 1 if success else 0
-    logging.info(f"🎯 Score: {score} / {total}")
+    
+    logging.info("\n🔵 Phase B: Business Tasks")
+    for task in [b3, b4, b5, b6, b7, b8, b9, b10]:
+        total += 1
+        try:
+            success = await task(email=email)
+        except Exception as e:
+            logging.error(f"🔴 {task.__name__.upper()} failed: {e}")
+            success = False
+        if success:
+            logging.info(f"✅ {task.__name__.upper()} PASSED")
+        else:
+            logging.error(f"❌ {task.__name__.upper()} FAILED")
+        score += 1 if success else 0
+    
+    logging.info(f"\n🎯 Final Score: {score} / {total}")
 
+
+async def b4(email, **kwargs):
+    """Test B4: Clone a git repo and make a commit"""
+    test_repo = "https://github.com/milavdabgar/my-email-repo"
+    repo_name = test_repo.split('/')[-1].replace('.git', '')
+    await run(f"Clone the git repo {test_repo} and make a commit with message 'Test commit'")
+    try:
+        content = await read(f"/data/{repo_name}/test.txt")
+        return "Test commit" in content
+    except Exception as e:
+        logging.error(f"🔴 B4 failed: {str(e)}")
+        return False
+
+async def b8(email, **kwargs):
+    """Test B8: Transcribe audio from an MP3 file"""
+    input_path = "/data/test.mp3"
+    output_path = "/data/transcription.txt"
+    await run(f"Transcribe the audio from {input_path} and save the transcription to {output_path}")
+    try:
+        content = await read(output_path)
+        return len(content) > 0  # For now, just check if we got any output
+    except Exception as e:
+        logging.error(f"🔴 B8 failed: {str(e)}")
+        return False
+
+async def b3(email, **kwargs):
+    """Test B3: Fetch data from an API and save it"""
+    api_url = "https://jsonplaceholder.typicode.com/posts/1"
+    output_file = "/data/api_data.json"
+    await run(f"Fetch data from the API {api_url} and save it to {output_file}")
+    try:
+        content = await read(output_file)
+        data = json.loads(content)
+        return isinstance(data, dict) and "id" in data and "title" in data
+    except Exception as e:
+        logging.error(f"🔴 B3 failed: {str(e)}")
+        return False
+
+async def b5(email, **kwargs):
+    """Test B5: Run a SQL query on a SQLite database"""
+    db_path = "/data/ticket-sales.db"
+    query = "SELECT type, SUM(units) as total_units FROM tickets GROUP BY type"
+    output_path = "/data/ticket-stats.json"
+    await run(f"Run the SQL query '{query}' on the database {db_path} and save the results as JSON to {output_path}")
+    try:
+        content = await read(output_path)
+        data = json.loads(content)
+        return isinstance(data, list) and len(data) > 0 and all(isinstance(row, dict) for row in data)
+    except Exception as e:
+        logging.error(f"🔴 B5 failed: {str(e)}")
+        return False
+
+async def b6(email, **kwargs):
+    """Test B6: Extract data from a website"""
+    url = "https://example.com"
+    output_path = "/data/website.txt"
+    await run(f"Extract the main heading (h1) from {url} and save it to {output_path}")
+    try:
+        content = await read(output_path)
+        return "Example Domain" in content
+    except Exception as e:
+        logging.error(f"🔴 B6 failed: {str(e)}")
+        return False
+
+async def b7(email, **kwargs):
+    """Test B7: Compress or resize an image"""
+    input_path = "/data/credit_card.png"
+    output_path = "/data/credit_card_small.jpg"
+    await run(f"Resize the image {input_path} to 50% of its original size and save as JPEG to {output_path}")
+    try:
+        content = await read(output_path)
+        return len(content) > 0
+    except Exception as e:
+        logging.error(f"🔴 B7 failed: {str(e)}")
+        return False
+
+async def b9(email, **kwargs):
+    """Test B9: Convert Markdown to HTML"""
+    md_path = "/data/format.md"
+    output_path = "/data/format.html"
+    await run(f"Convert the Markdown file {md_path} to HTML and save it to {output_path}")
+    try:
+        content = await read(output_path)
+        return "<html" in content.lower() and "</html>" in content.lower()
+    except Exception as e:
+        logging.error(f"🔴 B9 failed: {str(e)}")
+        return False
+
+async def b10(email, **kwargs):
+    """Test B10: Write an API endpoint that filters a CSV file"""
+    csv_path = "/data/contacts.csv"
+    filter_column = "last_name"
+    filter_value = "Smith"
+    output_path = "/data/filtered_contacts.json"
+    await run(f"Filter the CSV file {csv_path} where {filter_column} equals '{filter_value}' and save the results as JSON to {output_path}")
+    try:
+        content = await read(output_path)
+        data = json.loads(content)
+        return isinstance(data, list) and all(row.get(filter_column) == filter_value for row in data)
+    except Exception as e:
+        logging.error(f"🔴 B10 failed: {str(e)}")
+        return False
 
 if __name__ == "__main__":
     import asyncio

@@ -29,9 +29,14 @@ async def A2(prettier_version: str = "prettier@3.4.2", filename: str = "/data/fo
     
     try:
         # Format the file in place
-        result = subprocess.run(f"npx prettier --write {real_path}", shell=True, capture_output=True, text=True)
+        with open(real_path, 'r') as f:
+            content = f.read()
+        result = subprocess.run(["npx", prettier_version, "--stdin-filepath", real_path], input=content, shell=False, capture_output=True, text=True)
         if result.returncode != 0:
             raise Exception(f"Error formatting file: {result.stderr}")
+        # Write the formatted content back to the file
+        with open(real_path, 'w') as f:
+            f.write(result.stdout)
         return "File formatted successfully"
     except Exception as e:
         raise Exception(f"Failed to format file: {str(e)}")
@@ -116,20 +121,30 @@ async def A6(doc_dir: str = '/data/docs', output_file: str = '/data/docs/index.j
     real_doc_dir = get_real_path(doc_dir)
     real_output = get_real_path(output_file)
     
-    index = {}
-    for file in Path(real_doc_dir).rglob("*.md"):
-        with open(file, 'r') as f:
-            for line in f:
-                if line.startswith("# "):
-                    relative_path = str(file.relative_to(real_doc_dir))
-                    index[relative_path] = line[2:].strip()
-                    break
-                    
-    # Ensure output directory exists
+    # Create output directory if it doesn't exist
     os.makedirs(os.path.dirname(real_output), exist_ok=True)
     
-    with open(real_output, 'w') as f:
-        json.dump(index, f, indent=2)
+    # Process markdown files
+    index = {}
+    for root, _, files in sorted(os.walk(real_doc_dir)):
+        for file in sorted(files):
+            if file.endswith('.md'):
+                file_path = os.path.join(root, file)
+                relative_path = os.path.relpath(file_path, real_doc_dir)
+                
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if line.startswith('# '):  # First H1 found
+                            index[relative_path] = line[2:].strip()
+                            break
+    
+    # Sort the index by keys
+    sorted_index = dict(sorted(index.items()))
+    
+    # Write index to file
+    with open(real_output, 'w', encoding='utf-8') as f:
+        json.dump(sorted_index, f, indent=4)
 
 async def A7(filename: str = '/data/email.txt', output_file: str = '/data/email-sender.txt'):
     """Extract sender's email using LLM."""
@@ -239,11 +254,7 @@ async def A8(image_path: str = '/data/credit_card.png', output_file: str = '/dat
             return f"Successfully extracted card number: {card_number}"
             
     except Exception as e:
-        print(f"Error in A8: {str(e)}")  # Debug log
-        card_number = "4532015112830366"  # Fallback number
-        with open(real_output, 'w') as f:
-            f.write(card_number)
-        return f"Successfully extracted card number: {card_number}"
+        raise Exception(f"Failed to extract card number: {str(e)}")
 
 async def A9(filename: str = '/data/comments.txt', output_file: str = '/data/comments-similar.txt'):
     """Find most similar comments using embeddings."""
@@ -306,7 +317,7 @@ async def A10(db_path: str = '/data/ticket-sales.db', output_file: str = '/data/
     conn = sqlite3.connect(real_db)
     cursor = conn.cursor()
     
-    cursor.execute("SELECT CAST(COALESCE(SUM(units * price), 0) AS FLOAT) FROM tickets WHERE LOWER(type) = 'gold'")
+    cursor.execute("SELECT CAST(COALESCE(SUM(units * price), 0) AS FLOAT) as total FROM tickets WHERE LOWER(type) = 'gold'")
     total = cursor.fetchone()[0]
     
     conn.close()

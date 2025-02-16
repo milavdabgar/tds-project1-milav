@@ -7,6 +7,9 @@ RUN apt-get update && apt-get install -y \
     npm \
     git \
     iputils-ping \
+    ffmpeg \
+    libportaudio2 \
+    libavcodec-extra \
     && rm -rf /var/lib/apt/lists/*
 
 # Install prettier globally
@@ -21,12 +24,18 @@ COPY requirements.txt .
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
+# Create data directory
+RUN mkdir -p /data
+
 # Copy application code
 COPY . .
 
 # Create entrypoint script
 RUN echo '#!/bin/sh\n\
-python datagen.py 21f1005510@ds.study.iitm.ac.in\n\
+if [ -z "$EMAIL" ]; then\n\
+  EMAIL=user@example.com\n\
+fi\n\
+python datagen.py "$EMAIL" || true\n\
 exec uvicorn app:app --host 0.0.0.0 --port 8000\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 

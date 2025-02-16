@@ -46,8 +46,14 @@ async def read_file(path: str = Query(..., description="File path to read")):
         
         if not os.path.exists(real_path):
             raise HTTPException(status_code=404, detail=f"File not found: {path}")
-            
-        with open(real_path, "r") as f:
+        
+        # Check if file is binary by extension
+        binary_extensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp"}
+        is_binary = os.path.splitext(path)[1].lower() in binary_extensions
+        
+        # Open in binary mode for images, text mode for others
+        mode = "rb" if is_binary else "r"
+        with open(real_path, mode) as f:
             content = f.read()
             
         return PlainTextResponse(content)
