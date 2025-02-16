@@ -19,8 +19,8 @@ DATA_DIR = os.getenv("DATA_DIR", "/data")
 REAL_DATA_DIR = os.getenv("REAL_DATA_DIR", "/data")
 
 # API Endpoints
-# OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "https://aiproxy.sanand.workers.dev/openai/v1")
-OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "https://openrouter.ai/api/v1")
+OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "https://aiproxy.sanand.workers.dev/openai/v1")
+# OPENAI_API_BASE_URL = os.getenv("OPENAI_API_BASE_URL", "https://openrouter.ai/api/v1")
 OPENAI_CHAT_URL = f"{OPENAI_API_BASE_URL}/chat/completions"
 OPENAI_EMBEDDINGS_URL = f"{OPENAI_API_BASE_URL}/embeddings"
 
